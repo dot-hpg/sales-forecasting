@@ -13,7 +13,7 @@
 | 🚀 **Live app** | [sales-forecasting-hpg.streamlit.app](https://sales-forecasting-hpg.streamlit.app) (works on mobile) |
 | 📓 **Notebook** | [`notebooks/Product_Sales_Forecasting.ipynb`](notebooks/Product_Sales_Forecasting.ipynb): EDA, hypothesis tests, modelling, insights |
 | 🔌 **REST API** | [`api/app.py`](api/app.py) (Flask) |
-| 📊 **Tableau data** | [`data/processed/`](data/processed/) (see [data guide](data/processed/README.md)) |
+| 📊 **Tableau dashboard** | Tableau Public link coming soon · workbook and guide in [`tableau/`](tableau/) |
 
 ---
 
@@ -134,6 +134,11 @@ The final model was trained on data up to 31 March 2019 and evaluated on **1 Apr
 <p align="center"><img src="reports/figures/15_holdout_actual_vs_forecast.png" width="95%"></p>
 <p align="center"><img src="reports/figures/19_shap_summary.png" width="70%"></p>
 
+### 3.1 Tableau dashboard
+One page with the headline KPIs, the actual vs forecast timeline, segment, discount and calendar effects, hold-out accuracy and the model leaderboard. Workbook, data and calculated fields: [`tableau/`](tableau/).
+
+<p align="center"><img src="tableau/dashboard_preview.png" width="95%"></p>
+
 ---
 
 ## 4. Insights and recommendations
@@ -224,10 +229,12 @@ pytest -q                        # 13 tests: features, leakage guard, model, API
 ├── api/app.py                  # Flask REST API
 ├── forecasting/                # shared package: features, model, metrics, chart style
 ├── scripts/train.py            # training pipeline and exports
+├── scripts/build_tableau.py    # builds the Tableau workbook and its data
 ├── notebooks/Product_Sales_Forecasting.ipynb
 ├── models/                     # trained model and metadata (metrics, feature importance)
 ├── data/raw/                   # TRAIN.csv, TEST_FINAL.csv
 ├── data/processed/             # clean data, forecasts, model and test results (Tableau-ready)
+├── tableau/                    # Tableau Public workbook (.twbx), its data and a preview
 ├── reports/figures/            # all notebook charts (PNG)
 ├── tests/                      # pytest suite
 ├── Dockerfile, render.yaml     # API deployment
@@ -235,7 +242,7 @@ pytest -q                        # 13 tests: features, leakage guard, model, API
 ```
 
 ## 7. Tech stack
-Python · pandas · NumPy · SciPy · statsmodels · scikit-learn · LightGBM · XGBoost · Prophet · SHAP · Matplotlib · Seaborn · Plotly · Streamlit · Flask · gunicorn · Docker · pytest
+Python · pandas · NumPy · SciPy · statsmodels · scikit-learn · LightGBM · XGBoost · Prophet · SHAP · Matplotlib · Seaborn · Plotly · Streamlit · Tableau Public · Flask · gunicorn · Docker · pytest
 
 ---
 **Author:** Guntuku Hariprasad · [GitHub @dot-hpg](https://github.com/dot-hpg)
