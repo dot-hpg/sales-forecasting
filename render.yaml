@@ -1,0 +1,7 @@
+# One-click deploy of the Flask API on Render (free plan): New > Blueprint > pick this repo.
+services:
+  - type: web
+    name: sales-forecast-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health

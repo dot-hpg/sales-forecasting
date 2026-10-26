@@ -1,0 +1,29 @@
+hypothesis,test,statistic,p_value,effect_size,effect_measure,conclusion,p_value_fmt
+H1 Discount affects sales,Welch t-test (store-days),145.9294615862912,0.0,0.6885235133508643,Cohen's d,Reject H0,< 1e-300
+H1 Discount affects sales,Mann-Whitney U (store-days),6190447035.5,0.0,0.41167540418230275,rank-biserial r,Reject H0,< 1e-300
+H1 Discount affects sales,Paired t-test (store means),40.82820963044761,6.070110164054253e-138,33.51664853752078,mean uplift %,Reject H0,6.07e-138
+H1 Discount affects sales,Wilcoxon signed-rank (store means),1.0,1.444100877851299e-61,99.72602739726028,% stores higher,Reject H0,1.44e-61
+H2 Holiday affects sales,Welch t-test (store-days),-66.1757648298698,0.0,-0.46315968151592307,Cohen's d,Reject H0,< 1e-300
+H2 Holiday affects sales,Mann-Whitney U (store-days),1478686923.5,0.0,-0.27132549882638357,rank-biserial r,Reject H0,< 1e-300
+H2 Holiday affects sales,Paired t-test (store means),-55.99043719044798,5.875759770647758e-181,-19.09725701189455,mean uplift %,Reject H0,5.88e-181
+H2 Holiday affects sales,Wilcoxon signed-rank (store means),0.0,1.4322539015337709e-61,0.0,% stores higher,Reject H0,1.43e-61
+H3 Store type affects sales,One-way ANOVA (store-days),35123.644116017706,0.0,0.35876215622716345,eta squared,Reject H0,< 1e-300
+H3 Store type affects sales,Welch ANOVA (store-days),32696.206764091516,0.0,0.35876215622716345,eta squared,Reject H0,< 1e-300
+H3 Store type affects sales,Kruskal-Wallis (store-days),73677.05699774956,0.0,0.39118414428335296,epsilon squared,Reject H0,< 1e-300
+H3 Store type affects sales,One-way ANOVA (store means),308.50809671726597,3.0949083549912815e-99,0.7193990018195418,eta squared,Reject H0,3.09e-99
+H4 Location type affects sales,One-way ANOVA (store-days),25338.873708475978,0.0,0.3498751137555164,eta squared,Reject H0,< 1e-300
+H4 Location type affects sales,Welch ANOVA (store-days),25353.669392444095,0.0,0.3498751137555164,eta squared,Reject H0,< 1e-300
+H4 Location type affects sales,Kruskal-Wallis (store-days),72945.84237905528,0.0,0.38729839052250126,epsilon squared,Reject H0,< 1e-300
+H4 Location type affects sales,One-way ANOVA (store means),211.58682742938893,3.751453594436488e-93,0.7015784781877722,eta squared,Reject H0,3.75e-93
+H5 Region affects sales,One-way ANOVA (store-days),1682.4255287950684,0.0,0.02609986072984216,eta squared,Reject H0,< 1e-300
+H5 Region affects sales,Welch ANOVA (store-days),1491.2129010295432,0.0,0.02609986072984216,eta squared,Reject H0,< 1e-300
+H5 Region affects sales,Kruskal-Wallis (store-days),3968.063590460667,0.0,0.02105313689608289,epsilon squared,Reject H0,< 1e-300
+H5 Region affects sales,One-way ANOVA (store means),6.6455817917128535,0.0002225060358288459,0.0523361046609071,eta squared,Reject H0,2.23e-04
+H6 Weekend affects sales,Welch t-test (store-days),71.46760224459307,0.0,0.39150178366300015,Cohen's d,Reject H0,< 1e-300
+H6 Weekend affects sales,Mann-Whitney U (store-days),4364918524.0,0.0,0.21301404225438914,rank-biserial r,Reject H0,< 1e-300
+H6 Weekend affects sales,Paired t-test (store means),59.69798429119391,4.2302137265345277e-190,17.456236579717345,mean uplift %,Reject H0,4.23e-190
+H6 Weekend affects sales,Wilcoxon signed-rank (store means),0.0,1.4322539015337709e-61,100.0,% stores higher,Reject H0,1.43e-61
+H7 Orders correlate with sales,Pearson correlation,0.9416005646125762,0.0,0.8866116232787223,r squared,Reject H0,< 1e-300
+H7 Orders correlate with sales,Spearman correlation,0.9377462542885381,0.0,0.9377462542885381,Spearman rho,Reject H0,< 1e-300
+H8a Discount effect differs by store type,Two-way ANOVA interaction (log sales),27.65521497898388,7.15558139495496e-18,0.00025964419175665337,partial eta squared,Reject H0,7.16e-18
+H8b Discount effect differs by location type,Two-way ANOVA interaction (log sales),62.26024354538193,1.1358283255909487e-52,0.0007694566359332011,partial eta squared,Reject H0,1.14e-52
