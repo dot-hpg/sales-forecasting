@@ -5,13 +5,13 @@
 | File | What it is |
 |---|---|
 | [`Sales_Forecasting_Dashboard.twbx`](Sales_Forecasting_Dashboard.twbx) | Packaged workbook: the dashboard, its 13 views and the data. Open it and publish |
+| [`Sales_Forecasting_Starter.twbx`](Sales_Forecasting_Starter.twbx) | Fallback: the same data, all calculated fields and colours, and one chart, for building the rest by hand |
 | [`tableau_sales.csv`](tableau_sales.csv) | The single data source: 232,870 rows of store × day actuals, hold-out forecasts and the Jun–Jul 2019 forecast |
 | [`tableau_models.csv`](tableau_models.csv) | Model leaderboard (cross-validated WAPE of all 10 models) |
 | [`dashboard_preview.png`](dashboard_preview.png) | Static render of the same design, from the same CSVs |
 
-All four are rebuilt by `python scripts/build_tableau.py && python scripts/render_tableau_preview.py`.
-The workbook XML is checked against Tableau's official 2026.1 workbook schema
-([tableau-document-schemas](https://github.com/tableau/tableau-document-schemas)), so it needs **Tableau Public 2026.1 or newer**.
+All of them are rebuilt by `python scripts/build_tableau.py && python scripts/render_tableau_preview.py`.
+The workbooks are written in the Tableau 2021.2 file format, which any later Tableau Public opens and upgrades.
 
 ---
 
@@ -83,7 +83,11 @@ Colours: blue `#2A78D6` (actual, discount), orange `#EB6834` (forecast, final mo
 
 ## If the workbook does not open
 
-Rebuild it by hand from `tableau_sales.csv` (about 30 minutes). In Tableau Public: **Connect → Text file → `tableau_sales.csv`**, then **Data → New Data Source → `tableau_models.csv`**. Right-click `Store_id` → **Convert to Dimension**. Create the calculated fields above (**Analysis → Create Calculated Field**), then build each sheet:
+Open [`Sales_Forecasting_Starter.twbx`](Sales_Forecasting_Starter.twbx) instead: it already has both data sources, every calculated field above, the colours and the trend chart, so only the sheets below are left (about 20 minutes).
+
+If that fails too, start from the CSVs (about 30 minutes): **Connect → Text file → `tableau_sales.csv`**, then **Data → New Data Source → `tableau_models.csv`**. Right-click `Store_id` → **Convert to Dimension**, and create the calculated fields above (**Analysis → Create Calculated Field**).
+
+Then build each sheet:
 
 | Sheet | Columns | Rows | Marks |
 |---|---|---|---|

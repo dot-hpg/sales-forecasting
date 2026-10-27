@@ -21,6 +21,7 @@ PROCESSED = ROOT / "data" / "processed"
 OUT = ROOT / "tableau"
 DATA_DIR = "Data/tableau"  # folder inside the .twbx
 WORKBOOK = "Sales_Forecasting_Dashboard"
+STARTER = "Sales_Forecasting_Starter"  # data + calculated fields + one chart, for building by hand
 
 DS = "federated.0sales4cast7dashb0ard1hpg"
 TXT = "textscan.0sales4cast7dashb0ard1hpg"
@@ -149,37 +150,54 @@ def palette(field, mapping):
     return f"<encoding attr='color' field='[{field}]' type='palette'>{maps}</encoding>"
 
 
+REMOTE_TYPES = {"string": 129, "integer": 20, "real": 5, "date": 7}
+OM = "_.fcp.ObjectModelEncapsulateLegacy"  # feature-flag prefixes, as Tableau 2021.2 writes them
+
+
 def datasource(name, txt, caption, filename, cols, calcs=None, colors=""):
+    """A CSV data source in the 2021.2 file format (object model with legacy relation)."""
     csv_cols = "".join(f"<column datatype='{d}' name='{q(n)}' ordinal='{i}' />"
                        for i, (n, d, _, _) in enumerate(cols))
     table = filename.replace(".csv", "#csv")
+    obj = f"{filename}_{uuid.uuid5(uuid.NAMESPACE_URL, filename).hex.upper()}"
+    columns = (f"<columns character-set='UTF-8' header='yes' locale='en_US' separator=','>{csv_cols}</columns>")
+    attrs = f"connection='{txt}' name='{q(filename)}' table='[{q(table)}]' type='table'"
+    records = "".join(
+        f"<metadata-record class='column'><remote-name>{q(n)}</remote-name>"
+        f"<remote-type>{REMOTE_TYPES[d]}</remote-type><local-name>[{q(n)}]</local-name>"
+        f"<parent-name>[{q(filename)}]</parent-name><remote-alias>{q(n)}</remote-alias>"
+        f"<ordinal>{i}</ordinal><local-type>{d}</local-type>"
+        f"<aggregation>{'Sum' if d in ('integer', 'real') else ('Year' if d == 'date' else 'Count')}</aggregation>"
+        f"<contains-null>true</contains-null>"
+        f"<{OM}.true...object-id>[{q(obj)}]</{OM}.true...object-id></metadata-record>"
+        for i, (n, d, _, _) in enumerate(cols))
     decls = "".join(col_decl(n, d, r, t) for n, d, r, t in cols)
     decls += "".join(col_decl(cid, None, None, None, calcs) for cid in (calcs or {}))
-    style = f"<style><style-rule element='mark'>{colors}</style-rule></style>" if colors else ""
-    obj = f"{filename}_{uuid.uuid5(uuid.NAMESPACE_URL, filename).hex.upper()}"
-    relation = (f"<relation connection='{txt}' name='{q(filename)}' table='[{q(table)}]' type='table'>"
-                f"<columns character-set='UTF-8' header='yes' locale='en_US' separator=','>{csv_cols}</columns>"
-                f"</relation>")
-    decls += (f"<column caption='{q(filename)}' datatype='table' "
+    decls += (f"<_.fcp.ObjectModelTableType.true...column caption='{q(filename)}' datatype='table' "
               f"name='[__tableau_internal_object_id__].[{q(obj)}]' role='measure' type='quantitative' />")
+    style = f"<style><style-rule element='mark'>{colors}</style-rule></style>" if colors else ""
     return f"""
-    <datasource caption='{q(caption)}' inline='true' name='{name}' version='26.1'>
+    <datasource caption='{q(caption)}' inline='true' name='{name}' version='18.1'>
       <connection class='federated'>
         <named-connections>
           <named-connection caption='{q(filename)}' name='{txt}'>
             <connection class='textscan' directory='{DATA_DIR}' filename='{q(filename)}' password='' server='' />
           </named-connection>
         </named-connections>
-        {relation}
+        <{OM}.false...relation {attrs}>{columns}</{OM}.false...relation>
+        <{OM}.true...relation {attrs}>{columns}</{OM}.true...relation>
+        <metadata-records>{records}</metadata-records>
       </connection>
       <aliases enabled='yes' />
       {decls}
       {style}
-      <object-graph>
+      <{OM}.true...object-graph>
         <objects>
-          <object caption='{q(filename)}' id='{q(obj)}'><properties context=''>{relation}</properties></object>
+          <object caption='{q(filename)}' id='{q(obj)}'>
+            <properties context=''><relation {attrs}>{columns}</relation></properties>
+          </object>
         </objects>
-      </object-graph>
+      </{OM}.true...object-graph>
     </datasource>"""
 
 
@@ -388,28 +406,40 @@ def build_dashboard() -> str:
   </dashboards>"""
 
 
-def build_windows() -> str:
+def build_windows(dashboard=True) -> str:
     cards = ("<cards><edge name='left'><strip size='160'><card type='pages' /><card type='filters' />"
              "<card type='marks' /></strip></edge><edge name='top'><strip size='2147483647'>"
              "<card type='columns' /></strip><strip size='2147483647'><card type='rows' /></strip>"
              "<strip size='31'><card type='title' /></strip></edge></cards>")
     views = "".join(f"<viewpoint name='{q(s)}' />" for s in SHEETS)
-    out = (f"<window class='dashboard' maximized='true' name='Sales Forecasting Dashboard'>"
-           f"<viewpoints>{views}</viewpoints><active id='-1' />{sid('window/dashboard')}</window>")
+    out = "" if not dashboard else (f"<window class='dashboard' maximized='true' name='Sales Forecasting Dashboard'>"
+           f"<viewpoints>{views}</viewpoints><active id='16' />{sid('window/dashboard')}</window>")
     out += "".join(f"<window class='worksheet' name='{q(s)}'>{cards}{sid('window/' + s)}</window>"
                    for s in SHEETS)
-    return f"<windows>{out}</windows>"
+    return f"<windows source-height='30'>{out}</windows>"
 
 
-def build_workbook() -> str:
+def build_workbook(starter: bool = False) -> str:
+    """Full dashboard, or (starter) just the data sources, calculated fields and one chart."""
     sales_colors = (palette("none:Series:nk", {"Actual": BLUE, "Forecast": ORANGE})
                     + palette("none:Discount:nk", {"Yes": BLUE, "No": GREY}))
     model_colors = palette("none:Final:nk", {"Final model": ORANGE, "Other": GREY})
-    worksheets = build_worksheets()
+    SHEETS.clear()
+    if starter:
+        worksheets = "<worksheets>" + add(
+            "Sales Trend", "Chain sales by week: actuals and 61-day forecast",
+            [("Calculation_1012", "User")], [("Date", "Week-Trunc")], "Line",
+            {"color": ("Series", "None")}) + "</worksheets>"
+    else:
+        worksheets = build_worksheets()
     return f"""<?xml version='1.0' encoding='utf-8' ?>
-<workbook original-version='26.1' source-build='0.0.0 (0000.0.0.0)' source-platform='win' version='26.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+<!-- build 20212.21.0712.0907                               -->
+<workbook original-version='18.1' source-build='2021.2.1 (20212.21.0712.0907)' source-platform='win' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
   <document-format-change-manifest>
-    <ManifestByVersion />
+    <_.fcp.ObjectModelEncapsulateLegacy.true...ObjectModelEncapsulateLegacy />
+    <_.fcp.ObjectModelTableType.true...ObjectModelTableType />
+    <SheetIdentifierTracking />
+    <WindowsPersistSimpleIdentifiers />
   </document-format-change-manifest>
   <preferences>
     <preference name='ui.encoding.shelf.height' value='24' />
@@ -420,9 +450,8 @@ def build_workbook() -> str:
     {datasource(DS2, TXT2, M, "tableau_models.csv", MODEL_COLS, None, model_colors)}
   </datasources>
   {worksheets}
-  {build_dashboard()}
-  {build_windows()}
-  <explain-data enabled-for-viewer='true' extreme-values-enabled-for-all='true'><explanation-types /></explain-data>
+  {"" if starter else build_dashboard()}
+  {build_windows(dashboard=not starter)}
 </workbook>
 """
 
@@ -432,13 +461,14 @@ def main() -> None:
     sales, models = build_data()
     sales.to_csv(OUT / "tableau_sales.csv", index=False, date_format="%Y-%m-%d")
     models.to_csv(OUT / "tableau_models.csv", index=False)
-    twb = build_workbook()
-    (OUT / f"{WORKBOOK}.twb").write_text(twb, encoding="utf-8")
-    with zipfile.ZipFile(OUT / f"{WORKBOOK}.twbx", "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr(f"{WORKBOOK}.twb", twb)
-        z.write(OUT / "tableau_sales.csv", f"{DATA_DIR}/tableau_sales.csv")
-        z.write(OUT / "tableau_models.csv", f"{DATA_DIR}/tableau_models.csv")
-    print(f"{len(sales):,} rows -> {OUT / (WORKBOOK + '.twbx')}")
+    for name, starter in [(WORKBOOK, False), (STARTER, True)]:
+        twb = build_workbook(starter)
+        (OUT / f"{name}.twb").write_text(twb, encoding="utf-8")
+        with zipfile.ZipFile(OUT / f"{name}.twbx", "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr(f"{name}.twb", twb)
+            z.write(OUT / "tableau_sales.csv", f"{DATA_DIR}/tableau_sales.csv")
+            z.write(OUT / "tableau_models.csv", f"{DATA_DIR}/tableau_models.csv")
+        print(f"{len(sales):,} rows -> {OUT / (name + '.twbx')}")
 
 
 if __name__ == "__main__":
