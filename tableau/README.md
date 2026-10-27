@@ -21,8 +21,9 @@ Tableau Public's editor is a desktop app, so this part needs a Windows or Mac co
 
 1. Install **Tableau Public** (free) from [public.tableau.com/app/discover/download](https://public.tableau.com/app/discover/download) and sign in or create a free profile.
 2. Download [`Sales_Forecasting_Dashboard.twbx`](https://github.com/dot-hpg/sales-forecasting/raw/main/tableau/Sales_Forecasting_Dashboard.twbx) and double-click it. The dashboard opens.
-3. **File → Save to Tableau Public As…**, name it `Product Sales Forecasting`, then **Save**. Your browser opens the published dashboard.
-4. On that page, click **Share** and copy the link. Done.
+3. Tableau Public only publishes extracts: **Data → Sales → Extract Data… → Extract** (save the `.hyper` file where it suggests), then the same for **Data → Models**.
+4. **File → Save to Tableau Public As…**, name it `Product Sales Forecasting`, then **Save**. Your browser opens the published dashboard.
+5. On that page, click **Share** and copy the link. Done.
 
 Optional polish (2 minutes, before step 3):
 * **Filters:** on the dashboard, click the *Sales Trend* view, open its ▾ menu → **Filters → Store_Type**. Then on the new filter card ▾ → **Apply to Worksheets → All Using This Data Source**. Repeat for **Region_Code**.
