@@ -14,6 +14,7 @@
 | 📓 **Notebook** | [`notebooks/Product_Sales_Forecasting.ipynb`](notebooks/Product_Sales_Forecasting.ipynb): EDA, hypothesis tests, modelling, insights |
 | 🔌 **REST API** | [`api/app.py`](api/app.py) (Flask) |
 | 📊 **Tableau dashboard** | Tableau Public link coming soon · workbook and guide in [`tableau/`](tableau/) |
+| ✍️ **Blog, demo, submission** | [Blog post](docs/blog.md) · [Loom demo script](docs/loom_demo_script.md) · [Submission PDF](docs/submission.pdf) |
 
 ---
 

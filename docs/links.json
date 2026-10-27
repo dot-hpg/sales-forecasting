@@ -1,0 +1,14 @@
+{
+  "author": "Guntuku Hariprasad",
+  "project": "Product Sales Forecasting",
+  "links": [
+    {"name": "GitHub repository", "what": "Notebook, code, README, tests, processed data", "url": "https://github.com/dot-hpg/sales-forecasting"},
+    {"name": "Jupyter notebook", "what": "EDA, hypothesis tests, 10 models, tuning, SHAP, insights", "url": "https://github.com/dot-hpg/sales-forecasting/blob/main/notebooks/Product_Sales_Forecasting.ipynb"},
+    {"name": "Live web app", "what": "Streamlit forecasting app (works on mobile)", "url": ""},
+    {"name": "REST API", "what": "Flask API source, Dockerfile and Render blueprint", "url": "https://github.com/dot-hpg/sales-forecasting/blob/main/api/app.py"},
+    {"name": "Tableau dashboard", "what": "Tableau Public: sales, promotions, holidays, forecast accuracy", "url": ""},
+    {"name": "Technical blog", "what": "About 2,000-word write-up of the project", "url": ""},
+    {"name": "Demo video", "what": "5-minute Loom walkthrough", "url": ""},
+    {"name": "Portfolio", "what": "datascienceportfol.io profile (optional)", "url": ""}
+  ]
+}
