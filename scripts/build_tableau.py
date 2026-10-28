@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
 OUT = ROOT / "tableau"
 DATA_DIR = "Data/tableau"  # folder inside the .twbx
+EXTRACT_DIR = "Data/Extracts"  # Tableau Public only publishes extract-backed data sources
 WORKBOOK = "Sales_Forecasting_Dashboard"
 STARTER = "Sales_Forecasting_Starter"  # data + calculated fields + one chart, for building by hand
 
@@ -150,11 +151,11 @@ def palette(field, mapping):
     return f"<encoding attr='color' field='[{field}]' type='palette'>{maps}</encoding>"
 
 
-REMOTE_TYPES = {"string": 129, "integer": 20, "real": 5, "date": 7}
+REMOTE_TYPES = {"string": 129, "integer": 20, "real": 5, "date": 133}
 OM = "_.fcp.ObjectModelEncapsulateLegacy"  # feature-flag prefixes, as Tableau 2021.2 writes them
 
 
-def datasource(name, txt, caption, filename, cols, calcs=None, colors=""):
+def datasource(name, txt, caption, filename, cols, calcs=None, colors="", rows=0):
     """A CSV data source in the 2021.2 file format (object model with legacy relation)."""
     csv_cols = "".join(f"<column datatype='{d}' name='{q(n)}' ordinal='{i}' />"
                        for i, (n, d, _, _) in enumerate(cols))
@@ -176,6 +177,19 @@ def datasource(name, txt, caption, filename, cols, calcs=None, colors=""):
     decls += (f"<_.fcp.ObjectModelTableType.true...column caption='{q(filename)}' datatype='table' "
               f"name='[__tableau_internal_object_id__].[{q(obj)}]' role='measure' type='quantitative' />")
     style = f"<style><style-rule element='mark'>{colors}</style-rule></style>" if colors else ""
+    hyper = f"{EXTRACT_DIR}/{filename.replace('.csv', '.hyper')}"
+    extract_records = records.replace(f"<parent-name>[{q(filename)}]</parent-name>", "<parent-name>[Extract]</parent-name>")
+    extract = f"""
+      <extract _.fcp.ObjectModelExtractV2.true...object-id='' count='-1' enabled='true' units='records'>
+        <connection access_mode='readonly' authentication='auth-none' author-locale='en_US' class='hyper' dbname='{q(hyper)}' default-settings='yes' schema='Extract' sslmode='' tablename='Extract' update-time='10/28/2026 07:00:00 AM' username='tableau_internal_user'>
+          <{OM}.false...relation name='Extract' table='[Extract].[Extract]' type='table' />
+          <{OM}.true...relation name='Extract' table='[Extract].[Extract]' type='table' />
+          <refresh increment-key='' incremental-updates='false'>
+            <refresh-event add-from-file-path='{q(filename.replace('.csv', ''))}' increment-value='%null%' refresh-type='create' rows-inserted='{rows}' timestamp-start='2026-10-28 07:00:00.000' />
+          </refresh>
+          <metadata-records>{extract_records}</metadata-records>
+        </connection>
+      </extract>"""
     return f"""
     <datasource caption='{q(caption)}' inline='true' name='{name}' version='18.1'>
       <connection class='federated'>
@@ -190,11 +204,13 @@ def datasource(name, txt, caption, filename, cols, calcs=None, colors=""):
       </connection>
       <aliases enabled='yes' />
       {decls}
+      {extract}
       {style}
       <{OM}.true...object-graph>
         <objects>
           <object caption='{q(filename)}' id='{q(obj)}'>
             <properties context=''><relation {attrs}>{columns}</relation></properties>
+            <properties context='extract'><relation name='Extract' table='[Extract].[Extract]' type='table' /></properties>
           </object>
         </objects>
       </{OM}.true...object-graph>
@@ -245,7 +261,7 @@ def worksheet(name, title, ds, ds_caption, ds_cols, calcs, rows, cols, mark, enc
     encodings = "".join(f"<{e} column='[{ds}].{used[(c, d)][0]}' />" for e, (c, d) in enc.items())
     label_style = ("<style><style-rule element='mark'><format attr='mark-labels-show' value='true' />"
                    "<format attr='mark-labels-cull' value='true' /></style-rule></style>") if labels else ""
-    sub = (f"<run>&#10;</run><run fontcolor='{MUTED}' fontsize='9'>{q(subtitle)}</run>") if subtitle else ""
+    sub = (f"<run>Æ&#10;</run><run fontcolor='{MUTED}' fontsize='9'>{q(subtitle)}</run>") if subtitle else ""
     big_number = ""
     if ban:  # big-number KPI tile: value plus a unit, styled as one label
         c, d = enc["text"]
@@ -364,7 +380,7 @@ def build_dashboard() -> str:
     # header band
     z.append(text_zone(next(zid), pad, pad, inner_w, 120,
                        f"<run bold='true' fontcolor='#FFFFFF' fontsize='24'>Product Sales Forecasting</run>"
-                       f"<run>&#10;</run><run fontcolor='#C9D6EA' fontsize='11'>365 retail stores · 4 formats · "
+                       f"<run>Æ&#10;</run><run fontcolor='#C9D6EA' fontsize='11'>365 retail stores · 4 formats · "
                        f"5 location types · 4 regions · daily data Jan 2018 – May 2019 · LightGBM forecast for "
                        f"Jun – Jul 2019</run>", bg=NAVY))
     y = pad + 120 + 8
@@ -437,6 +453,7 @@ def build_workbook(starter: bool = False) -> str:
 <workbook original-version='18.1' source-build='2021.2.1 (20212.21.0712.0907)' source-platform='win' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
   <document-format-change-manifest>
     <_.fcp.ObjectModelEncapsulateLegacy.true...ObjectModelEncapsulateLegacy />
+    <_.fcp.ObjectModelExtractV2.true...ObjectModelExtractV2 />
     <_.fcp.ObjectModelTableType.true...ObjectModelTableType />
     <SheetIdentifierTracking />
     <WindowsPersistSimpleIdentifiers />
@@ -446,8 +463,8 @@ def build_workbook(starter: bool = False) -> str:
     <preference name='ui.shelf.height' value='26' />
   </preferences>
   <datasources>
-    {datasource(DS, TXT, S, "tableau_sales.csv", SALES_COLS, CALCS, sales_colors)}
-    {datasource(DS2, TXT2, M, "tableau_models.csv", MODEL_COLS, None, model_colors)}
+    {datasource(DS, TXT, S, "tableau_sales.csv", SALES_COLS, CALCS, sales_colors, ROWS["tableau_sales.csv"])}
+    {datasource(DS2, TXT2, M, "tableau_models.csv", MODEL_COLS, None, model_colors, ROWS["tableau_models.csv"])}
   </datasources>
   {worksheets}
   {"" if starter else build_dashboard()}
@@ -456,11 +473,45 @@ def build_workbook(starter: bool = False) -> str:
 """
 
 
+ROWS: dict[str, int] = {}
+HYPER_TYPES = {"string": "text", "integer": "big_int", "real": "double", "date": "date"}
+
+
+def write_hyper(df: pd.DataFrame, cols, path: Path) -> None:
+    """Write df to a Tableau extract with the single table "Extract"."Extract"."""
+    from tableauhyperapi import (Connection, CreateMode, HyperProcess, Inserter, NOT_NULLABLE, NULLABLE,
+                                 SqlType, TableDefinition, TableName, Telemetry)
+
+    path.unlink(missing_ok=True)
+    table = TableDefinition(TableName("Extract", "Extract"), [
+        TableDefinition.Column(n, getattr(SqlType, HYPER_TYPES[d])(),
+                               NULLABLE if df[n].isna().any() else NOT_NULLABLE)
+        for n, d, _, _ in cols])
+    rows = []
+    for rec in df[[n for n, *_ in cols]].itertuples(index=False):
+        rows.append([None if pd.isna(v) else (v.date() if isinstance(v, pd.Timestamp) else
+                     (int(v) if d == "integer" else float(v) if d == "real" else v))
+                     for v, (_, d, _, _) in zip(rec, cols)])
+    with HyperProcess(Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as hp:
+        with Connection(hp.endpoint, str(path), CreateMode.CREATE_AND_REPLACE) as conn:
+            conn.catalog.create_schema("Extract")
+            conn.catalog.create_table(table)
+            with Inserter(conn, table) as ins:
+                ins.add_rows(rows)
+                ins.execute()
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     sales, models = build_data()
     sales.to_csv(OUT / "tableau_sales.csv", index=False, date_format="%Y-%m-%d")
     models.to_csv(OUT / "tableau_models.csv", index=False)
+    global ROWS
+    ROWS = {"tableau_sales.csv": len(sales), "tableau_models.csv": len(models)}
+    hyper_dir = OUT / "extracts"
+    hyper_dir.mkdir(exist_ok=True)
+    write_hyper(sales, SALES_COLS, hyper_dir / "tableau_sales.hyper")
+    write_hyper(models, MODEL_COLS, hyper_dir / "tableau_models.hyper")
     for name, starter in [(WORKBOOK, False), (STARTER, True)]:
         twb = build_workbook(starter)
         (OUT / f"{name}.twb").write_text(twb, encoding="utf-8")
@@ -468,6 +519,8 @@ def main() -> None:
             z.writestr(f"{name}.twb", twb)
             z.write(OUT / "tableau_sales.csv", f"{DATA_DIR}/tableau_sales.csv")
             z.write(OUT / "tableau_models.csv", f"{DATA_DIR}/tableau_models.csv")
+            for f in ("tableau_sales.hyper", "tableau_models.hyper"):
+                z.write(hyper_dir / f, f"{EXTRACT_DIR}/{f}")
         print(f"{len(sales):,} rows -> {OUT / (name + '.twbx')}")
 
 
