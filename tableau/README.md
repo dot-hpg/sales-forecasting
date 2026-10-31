@@ -21,7 +21,7 @@ Tableau Public's editor is a desktop app, so this part needs a Windows or Mac co
 
 1. Install **Tableau Public** (free) from [public.tableau.com/app/discover/download](https://public.tableau.com/app/discover/download) and sign in or create a free profile.
 2. Download [`Sales_Forecasting_Dashboard.twbx`](https://github.com/dot-hpg/sales-forecasting/raw/main/tableau/Sales_Forecasting_Dashboard.twbx) and double-click it. The dashboard opens.
-3. Tableau Public only publishes extracts: **Data → Sales → Extract Data… → Extract** (save the `.hyper` file where it suggests), then the same for **Data → Models**.
+3. Tableau Public only publishes extracts: **Data → Sales → Extract Data… → Extract** (save the `.hyper` file where it suggests), then the same for **Data → Models**. Skip this if Data → Sales already shows "Use Extract" ticked: the workbook ships with extracts built in.
 4. **File → Save to Tableau Public As…**, name it `Product Sales Forecasting`, then **Save**. Your browser opens the published dashboard.
 5. On that page, click **Share** and copy the link. Done.
 
@@ -33,20 +33,23 @@ Optional polish (2 minutes, before step 3):
 
 ## The dashboard
 
-One page, 1300 × 2260 px, top to bottom:
+One page, 1400 × 2336 px, in three titled sections. **Click any treemap tile to filter the whole dashboard** to that store format and location (click again to clear).
 
 | Section | View | Built from |
 |---|---|---|
-| Header | Title band | Text |
-| KPI tiles | Total sales 8.06 bn · Discount uplift +32.1% · Holiday effect −19.2% · Hold-out WAPE 16.8% · Jun–Jul forecast 989.8 M | `Total Sales (bn)`, `Discount Uplift`, `Holiday Effect`, `Hold-out WAPE`, `Jun-Jul Forecast (M)` |
-| Trend | Weekly line of average daily chain sales, actual (blue) vs forecast (orange) | `Avg Daily Chain Sales` by `WEEK(Date)`, colour `Series` |
-| Segments | Heatmap of store type × location type | `AVG(Actual Sales)` |
-| Segments | Discount vs no discount by store type | `AVG(Actual Sales)`, colour `Discount` |
-| Calendar | Average sales by weekday | `AVG(Actual Sales)` by `WEEKDAY(Date)` |
-| Calendar | Average sales by region | `AVG(Actual Sales)` |
-| Accuracy | Actual vs forecast per store, Apr–May 2019 | `SUM(Hold-out Actual)` × `SUM(Hold-out Forecast)`, detail `Store_id` |
-| Accuracy | Hold-out WAPE by store type | `Hold-out WAPE` |
-| Models | Leaderboard of 10 models, final model in orange | `WAPE` from `tableau_models.csv` |
+| Header | Title band with byline, orange accent bar | Text |
+| KPI tiles | Total sales 8.06 bn · 42,784 per store-day · discount uplift 32.1% · holiday effect −19.2% · hold-out WAPE 16.8% · Jun–Jul forecast 989.8 M | `Total Sales (bn)`, `AVG(Actual Sales)`, `Discount Uplift`, `Holiday Effect`, `Hold-out WAPE`, `Jun-Jul Forecast (M)` |
+| 1 Sales performance | Weekly trend, actual (blue) vs forecast (orange) | `Avg Daily Chain Sales` by `WEEK(Date)`, colour `Series` |
+| 1 Sales performance | Treemap: where the sales come from | size `SUM(Actual Sales)`, shade `AVG(Actual Sales)`, by store type × location |
+| 1 Sales performance | Seasonality heatmap, year × month | `Avg Daily Chain Sales (M)` |
+| 1 Sales performance | Weekday pattern, weekends highlighted | `AVG(Actual Sales)` by `WEEKDAY(Date)`, colour `Day Type` |
+| 2 What drives sales | Heatmap of store type × location type | `AVG(Actual Sales)` |
+| 2 What drives sales | Discount vs no discount by store type | `AVG(Actual Sales)`, colour `Discount` |
+| 2 What drives sales | Discount uplift by location type | `Discount Uplift` |
+| 3 Forecast quality | Daily forecast window, Apr–Jul 2019 | `Chain Sales (M)` by day, colour `Series`, filter `Period` = Hold-out, Future |
+| 3 Forecast quality | Actual vs forecast per store | `SUM(Hold-out Actual)` × `SUM(Hold-out Forecast)`, detail `Store_id` |
+| 3 Forecast quality | Hold-out WAPE by store type | `Hold-out WAPE` |
+| 3 Forecast quality | Leaderboard of 10 models, final model in orange | `WAPE` from `tableau_models.csv` |
 
 Colours: blue `#2A78D6` (actual, discount), orange `#EB6834` (forecast, final model), grey `#B7C2D0` (context), navy `#1F3B73` header, page `#F3F5F9`, white cards with a `#E1E6EF` border. Blue and orange pass a colour-blindness separation check.
 

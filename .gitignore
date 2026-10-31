@@ -6,3 +6,5 @@ venv/
 .env
 .DS_Store
 .pytest_cache/
+tableau/extracts/
+hyperd*.log
